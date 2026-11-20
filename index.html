@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Misión Producción Multimedia</title>
+<style>
+:root{--c1:#ff6b6b;--c2:#feca57}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh;color:#2d3436;background:linear-gradient(135deg,var(--c1),var(--c2)) fixed;touch-action:manipulation}
+#app{max-width:760px;margin:0 auto;padding:10px 12px 50px}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+h1,h2,h3{margin:0}
+h2{font-size:22px;line-height:1.25}
+.card{background:#fff;border-radius:24px;padding:18px;box-shadow:0 8px 0 rgba(0,0,0,.14);margin-top:14px;animation:pop .35s}
+.center{text-align:center}
+.hud{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);border-radius:0 0 22px 22px;padding:8px 10px 10px;box-shadow:0 5px 0 rgba(0,0,0,.14)}
+.hrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{background:#f1f2f6;border-radius:999px;padding:4px 10px;font-weight:800;font-size:14px;white-space:nowrap}
+.chip.lv{background:#6c5ce7;color:#fff}
+.icon{margin-left:auto;font-size:20px;border:0;background:#f1f2f6;border-radius:50%;width:38px;height:38px;cursor:pointer}
+.bar{height:12px;background:#dfe6e9;border-radius:99px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#00b894,#fdcb6e,#ff7675);border-radius:99px;transition:width .5s}
+.btn{display:block;width:100%;font:inherit;font-weight:900;font-size:20px;padding:15px;border:0;border-radius:18px;color:#fff;background:linear-gradient(#ff7675,#d63031);box-shadow:0 6px 0 #8f1f1f;cursor:pointer;margin-top:16px}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #8f1f1f}
+.btn.green{background:linear-gradient(#55efc4,#00b894);box-shadow:0 6px 0 #006b55}
+.btn.blue{background:linear-gradient(#74b9ff,#0984e3);box-shadow:0 6px 0 #0a4f8f}
+.btn.purple{background:linear-gradient(#a29bfe,#6c5ce7);box-shadow:0 6px 0 #3f33a6}
+.btn.small{font-size:16px;padding:11px}
+.mascot{font-size:64px;display:inline-block;animation:bounce 1.2s infinite}
+.title{font-size:34px;font-weight:900;line-height:1.1;margin:6px 0;background:linear-gradient(90deg,#ff4757,#ffa502,#2ed573,#1e90ff,#a55eea);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:#636e72;font-weight:700;margin:6px 0 4px}
+input[type=text]{width:100%;font:inherit;font-size:20px;font-weight:700;padding:14px;border-radius:16px;border:4px solid #a29bfe;outline:none;text-align:center;margin-top:10px}
+input[type=text]:focus{border-color:#ff7675}
+.rules{text-align:left;background:#fff7d6;border-radius:16px;padding:10px 14px;font-size:15px;font-weight:600;margin-top:14px}
+.rules li{margin:4px 0}
+.qn{font-size:13px;font-weight:900;color:#fff;background:#00b894;display:inline-block;border-radius:99px;padding:3px 12px;margin-bottom:8px}
+.opt{display:flex;gap:10px;align-items:center;width:100%;text-align:left;font:inherit;font-size:18px;font-weight:700;padding:11px 12px;border-radius:16px;border:3px solid;background:#fff;margin-top:10px;cursor:pointer;color:#2d3436}
+.opt .l{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:900}
+.opt:active:not([disabled]){transform:scale(.98)}
+.o0{border-color:#ff7675}.o0 .l{background:#ff7675}
+.o1{border-color:#0984e3}.o1 .l{background:#0984e3}
+.o2{border-color:#00b894}.o2 .l{background:#00b894}
+.o3{border-color:#e1a400}.o3 .l{background:#e1a400}
+.opt.ok{background:#b8f5d7;border-color:#00b894;animation:pop .35s}
+.opt.bad{background:#ffd0d0;border-color:#d63031;animation:shake .4s}
+.opt[disabled]{cursor:default}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf .opt{justify-content:center;font-size:20px;margin-top:6px}
+.fbox{border-radius:18px;padding:12px 14px;margin-top:14px;animation:pop .3s}
+.fbox.good{background:#d6f8e8;border:3px solid #00b894}
+.fbox.mid{background:#fff3cd;border:3px solid #e1a400}
+.fbox.nope{background:#ffe0e0;border:3px solid #d63031}
+.fbox b{font-size:19px}
+.fbox p{margin:6px 0 0;font-weight:600}
+.viz{position:relative;border:5px solid #2d3436;border-radius:16px;overflow:hidden;margin:10px auto;max-width:480px;background:#fff}
+.viz svg{display:block;width:100%;height:auto}
+.rec{position:absolute;top:8px;left:12px;color:#fff;font-weight:900;font-size:13px;background:rgba(0,0,0,.55);padding:2px 8px;border-radius:99px}
+.rec i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff3838;margin-right:5px;animation:blink 1s infinite}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.mi{font:inherit;font-weight:800;font-size:15px;padding:10px 8px;min-height:58px;border-radius:14px;border:3px solid #b2bec3;background:#fff;cursor:pointer;color:#2d3436;margin-bottom:8px;width:100%}
+.mi.sel{border-color:#6c5ce7;background:#e9e6ff;transform:scale(1.03)}
+.mi.shake{animation:shake .4s;border-color:#d63031}
+.mi.p0{background:#ffd3d3;border-color:#ff7675}.mi.p1{background:#cfe8ff;border-color:#0984e3}
+.mi.p2{background:#c9f7e3;border-color:#00b894}.mi.p3{background:#fff0b8;border-color:#e1a400}
+.mi[disabled]{cursor:default}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip2{font:inherit;font-weight:800;font-size:17px;padding:10px 14px;border-radius:14px;border:3px solid #6c5ce7;background:#f0eeff;cursor:pointer;color:#2d3436}
+.chip2[disabled]{opacity:.25}
+.chip2.shake{animation:shake .4s;border-color:#d63031}
+.slots{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.slots li{background:#d6f8e8;border:3px dashed #00b894;border-radius:12px;padding:8px 12px;font-weight:800;min-height:42px}
+.slots li.empty{background:#f1f2f6;border-color:#b2bec3;color:#b2bec3}
+.pts{padding-left:18px;font-weight:600}
+.pts li{margin:8px 0;line-height:1.35}
+.stars{font-size:46px;letter-spacing:4px}
+.st.off{filter:grayscale(1);opacity:.25}
+.lvrow{display:flex;align-items:center;gap:8px;margin:7px 0;font-weight:800;font-size:14px}
+.lvrow .nm{flex:1;min-width:0}
+.lvrow .pb{flex:1.2;height:14px;background:#dfe6e9;border-radius:99px;overflow:hidden}
+.lvrow .pb i{display:block;height:100%}
+.grade{font-size:72px;font-weight:900;line-height:1}
+.pass{color:#00b894}.fail{color:#d63031}
+a.dl{display:block;text-align:center;margin-top:12px;font-weight:800;color:#0984e3}
+@keyframes pop{0%{transform:scale(.92);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px) rotate(-6deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes blink{50%{opacity:.2}}
+@media(max-width:420px){.title{font-size:28px}h2{font-size:20px}.opt{font-size:16px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<canvas id="confetti"></canvas>
+<script>
+(function(){
+'use strict';
+
+/* ================= CONTENIDO (basado en la presentación) ================= */
+var LEVELS=[
+{t:'Las 3 etapas',e:'🗺️',c:['#ff6b6b','#feca57'],
+ card:['Toda producción pasa por <b>3 etapas</b>: <b>Preproducción</b> (planear), <b>Producción</b> (grabar) y <b>Postproducción</b> (editar).','Preproducción: idea y objetivo → guion técnico → storyboard → presupuesto → permisos y casting.','Producción: locación, cámara y luz, sonido. Postproducción: montaje, audio y color, exportar.','<b>Regla de oro:</b> lo que se planea bien, se graba rápido.'],
+ qs:[
+ {k:'c',q:'¿Cuáles son las 3 etapas de una producción?',o:['Preproducción, producción y postproducción','Idea, guion y estreno','Cámara, luz y sonido','Grabar, subir y compartir'],why:'Planear → grabar → editar.'},
+ {k:'order',q:'Ordena las etapas, de la primera a la última.',items:['Preproducción','Producción','Postproducción'],why:'Primero se planea, luego se graba y al final se edita.'},
+ {k:'c',q:'Regla de oro: lo que se planea bien, se…',o:['graba rápido','borra después','edita menos','cobra más caro'],why:'Planear bien ahorra tiempo en el rodaje.'},
+ {k:'m',q:'Une cada tarea con su etapa.',pairs:[['Escribir el guion','Preproducción'],['Grabar con la cámara','Producción'],['Montaje y color','Postproducción']],why:'Guion = preproducción · cámara = producción · montaje = postproducción.'},
+ {k:'tf',q:'El storyboard se dibuja en la postproducción.',a:false,why:'Es de preproducción: se dibuja el spot ANTES de grabar.'},
+ {k:'c',q:'¿Cuál NO es parte de la preproducción?',o:['Exportar el video final','Presupuesto','Permisos y casting','Idea y objetivo'],why:'Exportar es postproducción.'},
+ {k:'order',q:'Ordena los pasos de la preproducción.',items:['Idea y objetivo','Guion técnico','Storyboard','Presupuesto','Permisos y casting'],why:'Idea → guion → storyboard → presupuesto → permisos y casting.'}
+ ]},
+{t:'Locación y equipo humano',e:'📍',c:['#1dd1a1','#54a0ff'],
+ card:['<b>Locación:</b> interior (café, tienda, casa), exterior (calle, parque, plaza) o estudio (todo controlado).','Antes de grabar visita el lugar: <b>luz, sonido, energía y permisos</b>.','<b>Equipo humano:</b> director, camarógrafo, sonidista, iluminador, producción y talento.','En un proyecto pequeño una persona puede hacer varios roles.'],
+ qs:[
+ {k:'c',q:'¿Cuáles son los 3 tipos de locación?',o:['Interior, exterior y estudio','Norte, sur y centro','Día, tarde y noche','Calle, cielo y mar'],why:'Interior, exterior o estudio.'},
+ {k:'m',q:'Une la locación con su descripción.',pairs:[['Interior','Café, tienda o casa'],['Exterior','Calle, parque o plaza'],['Estudio','Todo controlado']],why:'El estudio es el único con todo controlado.'},
+ {k:'c',q:'Antes de grabar visitas la locación. ¿Qué revisas?',o:['Luz, ruido, energía y permisos','Solo el precio de la renta','Solo el color de las paredes','Nada: se improvisa'],why:'Luz, sonido, energía y permisos.'},
+ {k:'m',q:'Une cada rol con su función.',pairs:[['Director','Decide la idea'],['Camarógrafo','Encuadra y graba'],['Sonidista','Cuida el audio'],['Iluminador','Mueve la luz']],why:'Cada rol cuida una parte del spot.'},
+ {k:'c',q:'¿Qué rol organiza todo el rodaje?',o:['Producción','Sonidista','Iluminador','Talento'],why:'Producción organiza todo.'},
+ {k:'tf',q:'En un proyecto escolar una persona puede hacer varios roles.',a:true,why:'Sí: en un proyecto pequeño una persona puede ser camarógrafo y sonidista a la vez.'},
+ {k:'c',q:'¿Cómo se llama el actor o modelo que sale frente a cámara?',o:['Talento','Director','Camarógrafo','Producción'],why:'Talento = actor o modelo.'}
+ ]},
+{t:'Equipo técnico y rodaje',e:'🎒',c:['#5f27cd','#ff6b81'],
+ card:['<b>Equipo mínimo:</b> cámara o celular, trípode o gimbal, micrófono, luces y respaldo.','Trípode = imagen firme · Gimbal = movimiento suave · Monitor = revisar foco y luz.','En un set real el <b>boom</b> con micrófono va fuera de cuadro y los <b>softbox</b> dan luz suave.','Checklist: batería y tarjeta, claqueta, 3 tomas por plano, 10 s de ambiente, revisar foco y luz.'],
+ qs:[
+ {k:'c',q:'Equipo mínimo para grabar un spot:',o:['Cámara o celular, trípode, micrófono, luces y respaldo','Solo el celular','Solo una cámara profesional y un dron','Un proyector y una bocina'],why:'Cámara, trípode o gimbal, audio, luces y respaldo.'},
+ {k:'c',q:'¿Para qué sirve el trípode?',o:['Para una imagen firme','Para dar luz suave','Para grabar la voz','Para editar'],why:'Trípode = imagen firme.'},
+ {k:'c',q:'Un celular con gimbal te da…',o:['movimiento suave','más ISO','luz de contraluz','sonido ambiental'],why:'El gimbal estabiliza el movimiento.'},
+ {k:'c',q:'En un set real, ¿dónde queda el micrófono del boom?',o:['Fuera de cuadro','Dentro del cuadro, bien visible','Pegado al lente','En el piso'],why:'El boom se sostiene fuera de cuadro.'},
+ {k:'tf',q:'La claqueta identifica cada toma (escena y número de toma).',a:true,why:'También ayuda a sincronizar imagen y sonido.'},
+ {k:'c',q:'¿Cuántas tomas conviene grabar de cada plano?',o:['3 tomas','1 sola','10 tomas','Ninguna: se arregla en edición'],why:'3 tomas por plano.'},
+ {k:'c',q:'¿Cuándo debes respaldar (copiar) tu material?',o:['El mismo día','Al terminar el semestre','Nunca','Cuando se llene la memoria'],why:'Respalda hoy mismo.'},
+ {k:'c',q:'Antes de grabar tu escena, ¿qué grabas durante 10 segundos?',o:['El sonido ambiente','Un fondo negro','Música','La claqueta al revés'],why:'10 s de ambiente te sirven para editar el audio.'}
+ ]},
+{t:'Luz y maquillaje de producto',e:'💡',c:['#ff9f43','#ee5253'],
+ card:['<b>Luz de tres puntos:</b> Principal (da forma y brillo), Relleno (suaviza sombras) y Contraluz (separa del fondo).','Softbox = luz suave · Reflector = rebota luz en las sombras · LED de color = crea ambiente.','Tip gratis: una ventana con luz suave y una hoja blanca como relleno.','<b>Maquillaje de producto:</b> limpieza, frescura (gotas de agua o glicerina), retoque y fondo que contraste.'],
+ qs:[
+ {k:'c',q:'Vista desde arriba. ¿Qué luz está marcada con “?”',viz:'luz:principal',o:['Luz principal','Relleno','Contraluz'],why:'La principal va al frente y a un lado: da forma y brillo.'},
+ {k:'c',q:'Vista desde arriba. ¿Qué luz está marcada con “?”',viz:'luz:relleno',o:['Relleno','Luz principal','Contraluz'],why:'El relleno está del lado opuesto y suaviza las sombras.'},
+ {k:'c',q:'Vista desde arriba. ¿Qué luz está marcada con “?”',viz:'luz:contra',o:['Contraluz','Luz principal','Relleno'],why:'El contraluz va detrás del sujeto y lo separa del fondo.'},
+ {k:'c',q:'¿Qué luz separa al sujeto del fondo?',o:['Contraluz','Relleno','Principal'],why:'Contraluz = separa del fondo.'},
+ {k:'m',q:'Une cada herramienta con su efecto.',pairs:[['Softbox','Luz suave, sin sombras duras'],['Reflector','Rebota luz en las sombras'],['Luz LED de color','Crea ambiente']],why:'Cada herramienta controla la luz de forma distinta.'},
+ {k:'c',q:'Sin presupuesto, ¿qué usas como luz de relleno?',o:['Una hoja o cartulina blanca','Una lámpara roja','Una bolsa negra','Nada, se deja oscuro'],why:'La cartulina blanca rebota la luz de la ventana.'},
+ {k:'c',q:'Tu bebida fría debe verse fresca en el anuncio. Usas…',o:['Gotas de agua o glicerina','Aceite de motor','Polvo y huellas','Cinta adhesiva'],why:'Maquillaje de producto: frescura con agua o glicerina.'}
+ ]},
+{t:'Cámara y exposición',e:'📷',c:['#0abde3','#10ac84'],
+ card:['Resolución: 1080p o 4K, horizontal o vertical.','Cuadros por segundo: <b>24 cine · 30 web · 60 cámara lenta</b>.','Enfoque: toca la pantalla y bloquea el foco. Exposición: blancos sin zonas quemadas.','<b>Triángulo de exposición:</b> apertura (f), velocidad (1/s) e ISO.','Regla de cine: velocidad = el doble de fps (24 fps → 1/48).'],
+ qs:[
+ {k:'c',q:'¿Qué fps se usan para el look de cine?',o:['24','30','60','12'],why:'24 cine · 30 web · 60 lenta.'},
+ {k:'c',q:'Para un video en cámara lenta grabas a…',o:['60 fps','24 fps','30 fps','1 fps'],why:'60 fps permite cámara lenta.'},
+ {k:'c',q:'Para fijar el enfoque en el celular…',o:['Tocas la pantalla y bloqueas el foco','Mueves el trípode','Subes el ISO','Apagas la luz'],why:'Toca la pantalla y bloquea el foco.'},
+ {k:'c',q:'Una buena exposición evita…',o:['Zonas quemadas (blancos sin detalle)','Usar trípode','Grabar en horizontal','Hacer varias tomas'],why:'Cuida que los blancos conserven detalle.'},
+ {k:'m',q:'Une cada control del triángulo de exposición con su efecto.',pairs:[['Apertura (f)','Más luz, fondo borroso'],['Velocidad (1/s)','Congela o difumina'],['ISO','Más sensible, más ruido']],why:'Los tres controles equilibran la luz.'},
+ {k:'c',q:'Si grabas a 24 fps, la regla de cine pide una velocidad de…',o:['1/48','1/24','1/100','1/500'],why:'Velocidad = el doble de los fps: 24 → 1/48.'},
+ {k:'c',q:'¿Qué NO forma parte del triángulo de exposición?',o:['Trípode','ISO','Apertura','Velocidad'],why:'El triángulo es apertura, velocidad e ISO.'},
+ {k:'c',q:'Subes mucho el ISO. ¿Qué pasa?',o:['Hay más ruido en la imagen','Se enfoca solo','La imagen se vuelve cámara lenta','Se borra el fondo'],why:'ISO alto = más sensible, pero más ruido.'}
+ ]},
+{t:'Los planos',e:'🔍',c:['#f368e0','#5f27cd'],
+ card:['<b>1 Gran general:</b> muestra el lugar · <b>2 Plano entero:</b> cuerpo completo · <b>3 Plano medio:</b> de la cintura arriba · <b>4 Primer plano:</b> rostro y emoción · <b>5 Plano detalle:</b> el producto al 100 %.','Mezcla planos: general para ubicar, medio para contar y detalle para vender.','Cuanto más cerca, más emoción.'],
+ qs:[
+ {k:'c',q:'¿Qué plano es este?',viz:'plano:general',o:['Gran plano general','Plano entero','Primer plano','Plano detalle'],why:'Muestra todo el lugar: gran plano general.'},
+ {k:'c',q:'¿Qué plano es este?',viz:'plano:entero',o:['Plano entero','Plano medio','Gran plano general','Primer plano'],why:'Se ve el cuerpo completo: plano entero.'},
+ {k:'c',q:'¿Qué plano es este?',viz:'plano:medio',o:['Plano medio','Plano entero','Primer plano','Plano detalle'],why:'De la cintura hacia arriba: plano medio.'},
+ {k:'c',q:'¿Qué plano es este?',viz:'plano:primer',o:['Primer plano','Plano medio','Plano detalle','Gran plano general'],why:'Rostro y emoción: primer plano.'},
+ {k:'c',q:'¿Qué plano es este?',viz:'plano:detalle',o:['Plano detalle','Primer plano','Plano medio','Plano entero'],why:'El producto ocupa el cuadro: plano detalle.'},
+ {k:'order',q:'Ordena los planos del más lejano al más cercano.',items:['Gran general','Plano entero','Plano medio','Primer plano','Plano detalle'],why:'General → entero → medio → primer plano → detalle.'},
+ {k:'c',q:'Para VENDER tu producto, ¿qué plano usas?',o:['Plano detalle','Gran plano general','Plano entero','Cenital'],why:'El detalle muestra el producto al 100 %.'},
+ {k:'c',q:'Cuanto más cerca está la cámara, más…',o:['emoción','distancia','lugar','silencio'],why:'Cuanto más cerca, más emoción.'}
+ ]},
+{t:'Ángulos, movimientos y composición',e:'🎢',c:['#ffa502','#2ed573'],
+ card:['<b>Perspectiva:</b> picado (se ve pequeño o débil), normal (mirada neutral), contrapicado (se ve fuerte y grande) y cenital (desde arriba).','<b>Movimientos:</b> panorámica (gira de lado), tilt (arriba y abajo), travelling (la cámara avanza), zoom (acerca sin moverte).','Sin equipo: carrito, silla con ruedas o caminar despacio.','<b>Regla de los tercios:</b> divide el cuadro en 9 y coloca el producto en un punto de cruce; deja aire al frente.'],
+ qs:[
+ {k:'c',q:'¿Qué ángulo de cámara se muestra?',viz:'ang:picado',o:['Picado','Contrapicado','Normal','Cenital'],why:'La cámara está arriba mirando hacia abajo: picado. El sujeto se ve pequeño.'},
+ {k:'c',q:'¿Qué ángulo de cámara se muestra?',viz:'ang:contra',o:['Contrapicado','Picado','Normal','Cenital'],why:'La cámara está abajo mirando hacia arriba: contrapicado. El sujeto se ve fuerte.'},
+ {k:'c',q:'¿Qué ángulo de cámara se muestra?',viz:'ang:normal',o:['Normal','Picado','Contrapicado','Cenital'],why:'La cámara está a la altura de los ojos: mirada neutral.'},
+ {k:'c',q:'¿Qué ángulo de cámara se muestra?',viz:'ang:cenital',o:['Cenital','Picado','Contrapicado','Normal'],why:'La cámara está justo arriba, vista desde arriba: cenital.'},
+ {k:'m',q:'Une cada movimiento de cámara con su descripción.',pairs:[['Panorámica','Gira de lado'],['Tilt','Gira arriba y abajo'],['Travelling','La cámara avanza'],['Zoom','Acerca sin moverte']],why:'Panorámica y tilt giran; travelling se desplaza; zoom acerca sin mover la cámara.'},
+ {k:'c',q:'Quieres un travelling pero no tienes riel. ¿Qué puedes usar?',o:['Un carrito o silla con ruedas','Un martillo','Un espejo','Un micrófono'],why:'Carrito, silla con ruedas o caminar despacio.'},
+ {k:'c',q:'Regla de los tercios: ¿dónde colocas el producto?',o:['En un punto de cruce de la cuadrícula','Siempre en el centro exacto','Pegado al borde','Fuera del cuadro'],why:'Divide el cuadro en 9 y usa los puntos de cruce.'},
+ {k:'c',q:'Para que tu producto parezca un héroe fuerte y grande usas…',o:['Contrapicado','Picado','Cenital','Panorámica'],why:'Contrapicado para hacer héroe a tu producto.'}
+ ]},
+{t:'Micrófonos',e:'🎤',c:['#ff4757','#5352ed'],
+ card:['<b>Omnidireccional:</b> capta de todos lados · <b>Unidireccional (cardioide):</b> capta al frente · <b>Bidireccional:</b> frente y atrás · <b>Supercardioide:</b> más cerrado.','<b>Dinámico:</b> resistente, sin energía, ideal para ruido. <b>Condensador:</b> muy detallado, necesita phantom power, ideal para voz.','<b>Solapa:</b> discreto junto a la boca · <b>Boom y shotgun:</b> apuntan a la voz, fuera de cuadro · <b>Ambiental:</b> capta todo el lugar.'],
+ qs:[
+ {k:'c',q:'¿Qué patrón polar muestra la figura?',viz:'mic:omni',o:['Omnidireccional','Unidireccional (cardioide)','Bidireccional'],why:'Un círculo: capta de todos lados.'},
+ {k:'c',q:'¿Qué patrón polar muestra la figura?',viz:'mic:cardioid',o:['Unidireccional (cardioide)','Omnidireccional','Bidireccional'],why:'Forma de corazón: capta sobre todo al frente.'},
+ {k:'c',q:'¿Qué patrón polar muestra la figura?',viz:'mic:bidi',o:['Bidireccional','Omnidireccional','Unidireccional (cardioide)'],why:'Forma de 8: capta al frente y atrás.'},
+ {k:'c',q:'Este patrón es todavía más cerrado que el unidireccional. ¿Cuál es?',viz:'mic:super',o:['Supercardioide','Unidireccional (cardioide)','Omnidireccional','Bidireccional'],why:'Supercardioide: más cerrado al frente.'},
+ {k:'m',q:'Une cada micrófono con su característica.',pairs:[['Dinámico','Resistente y sin energía'],['Condensador','Muy detallado, usa phantom power'],['Solapa','Discreto, junto a la boca'],['Shotgun en boom','Apunta a la voz, fuera de cuadro']],why:'Cada micrófono tiene su mejor uso.'},
+ {k:'c',q:'Entrevista en la calle con mucho ruido. ¿Qué micrófono eliges?',o:['Solapa o dinámico','Condensador','Omnidireccional','Ambiental'],why:'Capta la voz y rechaza el ruido.'},
+ {k:'c',q:'Voz en off del spot, grabada en un cuarto silencioso:',o:['Condensador','Dinámico','Omnidireccional','Shotgun'],why:'El condensador da mucho detalle en la voz.'},
+ {k:'c',q:'Escena con actores, con el micrófono fuera de cuadro:',o:['Shotgun en boom','Solapa','Omnidireccional','Condensador'],why:'Direccional, fuera de cuadro.'},
+ {k:'c',q:'Quieres captar el ambiente de todo el café:',o:['Omnidireccional','Shotgun','Dinámico','Unidireccional'],why:'Omnidireccional: capta todo el lugar.'},
+ {k:'c',q:'Evento con volumen muy alto y mucho ruido:',o:['Dinámico','Condensador','Solapa','Ambiental'],why:'El dinámico soporta volumen alto.'}
+ ]},
+{t:'Software de video y audio',e:'💻',c:['#00d2d3','#341f97'],
+ card:['<b>Video:</b> DaVinci Resolve (edición, color y audio; hay versión gratuita), Premiere Pro (estándar en agencias, suscripción), CapCut (fácil, ideal para redes), Shotcut y Kdenlive (gratuitos, código abierto).','<b>Audio:</b> Audacity (gratuito, varias pistas), Audition (profesional, limpia ruido, suscripción), GarageBand (gratis en Apple), Fairlight (mezcla dentro de DaVinci).','Empieza gratis: <b>DaVinci Resolve y Audacity</b>.'],
+ qs:[
+ {k:'m',q:'Editores de VIDEO: une cada uno con su característica.',pairs:[['DaVinci Resolve','Edición, color y audio; hay versión gratuita'],['Premiere Pro','Estándar en agencias; de suscripción'],['CapCut','Fácil, ideal para redes sociales'],['Shotcut / Kdenlive','Gratuitos y de código abierto']],why:'Cada editor tiene su público.'},
+ {k:'m',q:'Software de AUDIO: une cada uno con su característica.',pairs:[['Audacity','Gratuito, varias pistas'],['Adobe Audition','Profesional; limpia ruido'],['GarageBand','Gratis en equipos Apple'],['Fairlight','Mezcla dentro del editor de video']],why:'Audacity sirve para empezar; Fairlight vive dentro de DaVinci.'},
+ {k:'c',q:'Necesitas editar rápido un video para redes sociales. ¿Qué app es ideal?',o:['CapCut','Adobe Audition','Audacity','GarageBand'],why:'CapCut es fácil e ideal para redes.'},
+ {k:'c',q:'Tu primer editor de audio: gratuito y con varias pistas.',o:['Audacity','Adobe Audition','Premiere Pro','CapCut'],why:'Audacity es gratuito y sirve para empezar.'},
+ {k:'c',q:'¿Qué editor de video es estándar en agencias y es de suscripción?',o:['Adobe Premiere Pro','Shotcut','Kdenlive','GarageBand'],why:'Premiere Pro es el estándar en agencias.'},
+ {k:'tf',q:'Fairlight, la mezcla de audio, está dentro de DaVinci Resolve.',a:true,why:'Así mezclas el audio sin salir del editor de video.'},
+ {k:'c',q:'Para empezar sin gastar, ¿qué dúo recomienda la clase?',o:['DaVinci Resolve y Audacity','Premiere Pro y Audition','CapCut Pro y GarageBand','Ninguno: todo es de pago'],why:'Empieza gratis con DaVinci Resolve y Audacity.'}
+ ]},
+{t:'Guion, storyboard y jefe final',e:'🏆',c:['#f9ca24','#eb4d4b'],
+ card:['<b>Guion técnico:</b> organiza cada escena con plano, imagen, audio y tiempo.','<b>Storyboard:</b> tu spot dibujado, una viñeta por plano.','<b>Spot de radio:</b> solo sonido → voz, música, efectos y silencio.','Ejemplo «Café Parras»: 5 escenas de 3 + 4 + 3 + 5 + 5 = 20 segundos.','Dato IFT: YouTube es la plataforma más usada (73 %). Evidencia: portafolio con guion técnico, spot radiofónico, storyboard y video. <b>Luz y sonido son la mitad del video.</b>'],
+ qs:[
+ {k:'c',q:'¿Qué columnas tiene el guion técnico del ejemplo?',o:['Escena, plano, imagen, audio y tiempo','Nombre, edad y correo','Marca, precio y color','Hora, lugar y clima'],why:'Organiza cada escena: plano, imagen, audio y tiempo.'},
+ {k:'c',q:'¿Qué es el storyboard?',o:['El spot dibujado, una viñeta por plano','Un permiso de grabación','Un micrófono especial','La lista de precios'],why:'Es tu spot dibujado escena por escena.'},
+ {k:'c',q:'¿Cuál de estos elementos NO existe en un spot de radio?',o:['Imagen','Voz','Música','Efectos'],why:'La radio solo tiene sonido: voz, música, efectos y silencio.'},
+ {k:'c',q:'En el guion de «Café Parras», «Vapor sobre la taza» es un…',o:['Plano detalle','Gran plano general','Primer plano','Plano entero'],why:'La escena 3 es plano detalle.'},
+ {k:'c',q:'El guion de «Café Parras» suma 3 + 4 + 3 + 5 + 5 segundos. ¿Cuánto dura el spot?',o:['20 segundos','15 segundos','25 segundos','30 segundos'],why:'3 + 4 + 3 + 5 + 5 = 20 segundos.'},
+ {k:'c',q:'Según el IFT, ¿cuál es la plataforma más usada para ver contenidos?',o:['YouTube','Netflix','Facebook','Spotify'],why:'YouTube, con 73 %.'},
+ {k:'c',q:'¿Cuál pieza NO forma parte del portafolio multimedia de la unidad?',o:['Un logotipo animado','Guion técnico','Storyboard','Video publicitario'],why:'El portafolio: guion técnico, spot radiofónico, storyboard y video publicitario.'},
+ {k:'tf',q:'En un spot de radio, la imagen es lo más importante.',a:false,why:'La radio solo tiene sonido: voz, música, efectos y silencio.'},
+ {k:'c',q:'Luz y sonido son…',o:['La mitad del video','Un extra opcional','Solo para cine','Solo para radio'],why:'Cuida luz y sonido: son la mitad del video.'}
+ ]}
+];
+var TOTAL=0,LSTART=[];
+LEVELS.forEach(function(l,i){LSTART[i]=TOTAL;TOTAL+=l.qs.length;});
+var PASS=8;
+
+/* ================= UTILIDADES ================= */
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function rngf(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(arr,r){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function fmt(ms){var s=Math.floor(ms/1000),m=Math.floor(s/60);s=s%60;return m+':'+(s<10?'0':'')+s;}
+var KEY='mision_prod_multimedia_v1';
+function lsGet(){try{var v=localStorage.getItem(KEY);return v?JSON.parse(v):null;}catch(e){return null;}}
+function lsSet(o){try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+function lsDel(){try{localStorage.removeItem(KEY);}catch(e){}}
+
+/* ================= SONIDO (Web Audio, sin archivos) ================= */
+function mf(n){return 440*Math.pow(2,(n-69)/12);}
+var SND={ctx:null,master:null,mus:null,muted:false,timer:null,next:0,step:0,bpm:118,root:60,
+ init:function(){
+  if(!this.ctx){
+   var C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+   try{this.ctx=new C();}catch(e){return;}
+   this.master=this.ctx.createGain();this.master.gain.value=this.muted?0:0.9;this.master.connect(this.ctx.destination);
+   this.mus=this.ctx.createGain();this.mus.gain.value=0.35;this.mus.connect(this.master);
+  }
+  if(this.ctx.state==='suspended'){try{this.ctx.resume();}catch(e){}}
+ },
+ setMuted:function(m){this.muted=m;if(this.master)this.master.gain.value=m?0:0.9;},
+ t:function(f,d,type,v,at,slide,dest){
+  if(!this.ctx)return;
+  var c=this.ctx,t=(at==null?c.currentTime:at);
+  var o=c.createOscillator(),g=c.createGain();
+  o.type=type||'square';o.frequency.setValueAtTime(f,t);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v||.15,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(dest||this.master);o.start(t);o.stop(t+d+.03);
+ },
+ now:function(){return this.ctx?this.ctx.currentTime:0;},
+ click:function(){this.t(700,.06,'square',.08);},
+ pop:function(){this.t(880,.09,'triangle',.18);this.t(1175,.09,'triangle',.14,this.now()+.07);},
+ ok:function(st){var b=this.now(),k=Math.pow(2,Math.min(st||1,8)/12/1.5);[523,659,784].forEach(function(f,i){SND.t(f*k,.16,'square',.14,b+i*.07);});},
+ half:function(){var b=this.now();this.t(440,.14,'triangle',.18,b);this.t(392,.2,'triangle',.18,b+.12);},
+ bad:function(){var b=this.now();this.t(260,.28,'sawtooth',.16,b,110);this.t(190,.3,'sawtooth',.14,b+.15,80);},
+ level:function(){var b=this.now();[523,659,784,1047,784,1047,1319].forEach(function(f,i){SND.t(f,.2,'square',.15,b+i*.11);SND.t(f/2,.2,'triangle',.18,b+i*.11);});},
+ win:function(){var b=this.now(),n=[523,659,784,1047,988,1047,1175,1319,1568];n.forEach(function(f,i){SND.t(f,.25,'square',.15,b+i*.12);SND.t(f/2,.25,'triangle',.2,b+i*.12);});},
+ fail:function(){var b=this.now();[392,330,262,196].forEach(function(f,i){SND.t(f,.35,'triangle',.25,b+i*.22);});},
+ stopMusic:function(){clearInterval(this.timer);this.timer=null;},
+ setLevel:function(li){this.bpm=110+li*4;this.root=57+(li%5)*2;},
+ startMusic:function(){
+  if(!this.ctx||this.timer)return;
+  this.next=this.ctx.currentTime+.1;
+  this.timer=setInterval(function(){SND.sched();},100);
+ },
+ sched:function(){
+  var c=this.ctx;if(!c)return;
+  while(this.next<c.currentTime+.3){this.play(this.step,this.next);this.next+=60/this.bpm/2;this.step++;}
+ },
+ play:function(s,at){
+  var prog=[0,-3,-7,-5],arp=[0,4,7,12,7,4,7,12];
+  var r=this.root+prog[Math.floor(s/8)%4];
+  this.t(mf(r+arp[s%8]+12),.22,'triangle',.22,at,0,this.mus);
+  if(s%4===0)this.t(mf(r-12),.35,'sine',.45,at,0,this.mus);
+  if(s%8===4)this.t(mf(r+19),.18,'square',.07,at,0,this.mus);
+  if(s%2===1)this.t(5000,.03,'square',.02,at,0,this.mus);
+ }
+};
+document.addEventListener('visibilitychange',function(){
+ if(!SND.ctx)return;
+ try{if(document.hidden)SND.ctx.suspend();else SND.ctx.resume();}catch(e){}
+});
+
+/* ================= CONFETI ================= */
+var cv=$('#confetti'),cx=cv.getContext('2d'),parts=[],raf=null;
+function sizeCv(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
+sizeCv();window.addEventListener('resize',sizeCv);
+function burst(n,big){
+ var cols=['#ff4757','#ffa502','#2ed573','#1e90ff','#a55eea','#fdcb6e','#ff6b81'];
+ for(var i=0;i<n;i++){parts.push({x:big?Math.random()*cv.width:cv.width/2,y:big?-20:cv.height*0.6,vx:(Math.random()-.5)*(big?5:12),vy:big?Math.random()*3+2:-(Math.random()*11+5),s:Math.random()*8+5,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4,life:big?260:90});}
+ if(!raf)loop();
+}
+function loop(){
+ cx.clearRect(0,0,cv.width,cv.height);
+ parts=parts.filter(function(p){return p.life>0&&p.y<cv.height+30;});
+ parts.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;p.r+=p.vr;p.life--;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore();});
+ if(parts.length)raf=requestAnimationFrame(loop);else{raf=null;cx.clearRect(0,0,cv.width,cv.height);}
+}
+
+/* ================= DIBUJOS SVG ================= */
+function camSVG(x,y,ang){return '<g transform="translate('+x+' '+y+') rotate('+ang.toFixed(1)+')"><rect x="-20" y="-12" width="30" height="24" rx="5" fill="#2d3436"/><rect x="10" y="-8" width="13" height="16" rx="3" fill="#636e72"/><circle cx="-8" cy="-4" r="3.5" fill="#ff7675"/></g>';}
+function figure(x,feet){return '<rect x="'+(x-9)+'" y="'+(feet-42)+'" width="18" height="30" rx="5" fill="#ff9f43"/><rect x="'+(x-8)+'" y="'+(feet-14)+'" width="7" height="14" fill="#2d3436"/><rect x="'+(x+1)+'" y="'+(feet-14)+'" width="7" height="14" fill="#2d3436"/><circle cx="'+x+'" cy="'+(feet-52)+'" r="11" fill="#fdcb6e"/><path d="M'+(x-11)+','+(feet-54)+' Q'+x+','+(feet-70)+' '+(x+11)+','+(feet-54)+' Q'+x+','+(feet-60)+' '+(x-11)+','+(feet-54)+'Z" fill="#4b2e1e"/>';}
+function angSVG(kind){
+ var gy=178,tx=240,ty=130,cxp,cyp;
+ if(kind==='normal'){cxp=60;cyp=135;}
+ if(kind==='picado'){cxp=70;cyp=42;}
+ if(kind==='contra'){cxp=70;cyp=172;ty=120;}
+ if(kind==='cenital'){cxp=tx;cyp=26;}
+ var dx=tx-cxp,dy=ty-cyp,ang=Math.atan2(dy,dx),len=Math.sqrt(dx*dx+dy*dy);
+ var px=-Math.sin(ang)*30,py=Math.cos(ang)*30;
+ var fov='<polygon points="'+cxp+','+cyp+' '+(tx+px)+','+(ty+py)+' '+(tx-px)+','+(ty-py)+'" fill="rgba(255,234,167,.65)"/>';
+ var line='<line x1="'+cxp+'" y1="'+cyp+'" x2="'+tx+'" y2="'+ty+'" stroke="#e17055" stroke-width="2" stroke-dasharray="6 4"/>';
+ return '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="200" fill="#c7ecee"/><circle cx="285" cy="30" r="16" fill="#ffeaa7"/><rect y="'+gy+'" width="320" height="22" fill="#55efc4"/>'+fov+line+figure(tx,gy)+camSVG(cxp,cyp,ang*180/Math.PI)+'</svg>';
+}
+function bulb(x,y,hot){
+ var f=hot?'#ffeaa7':'#b2bec3',s=hot?'#e1a400':'#7f8c8d';
+ return (hot?'<circle cx="'+x+'" cy="'+y+'" r="26" fill="none" stroke="#ff7675" stroke-width="3"><animate attributeName="r" values="20;30;20" dur="1.2s" repeatCount="indefinite"/></circle>':'')+'<rect x="'+(x-15)+'" y="'+(y-15)+'" width="30" height="30" rx="8" fill="'+f+'" stroke="'+s+'" stroke-width="3"/>'+(hot?'<text x="'+x+'" y="'+(y+8)+'" text-anchor="middle" font-size="22" font-weight="900" fill="#d63031" font-family="Arial,sans-serif">?</text>':'<circle cx="'+x+'" cy="'+y+'" r="7" fill="#dfe6e9"/>');
+}
+function luzSVG(which){
+ var L={principal:[60,185],relleno:[262,185],contra:[160,38]};
+ var sx=160,sy=120,out='<svg viewBox="0 0 320 260" xmlns="http://www.w3.org/2000/svg"><rect width="320" height="260" fill="#dfe6e9"/>';
+ var beams='';
+ for(var k in L){var hot=(k===which);beams+='<line x1="'+L[k][0]+'" y1="'+L[k][1]+'" x2="'+sx+'" y2="'+sy+'" stroke="'+(hot?'#fdcb6e':'#b2bec3')+'" stroke-width="'+(hot?5:2)+'" stroke-dasharray="7 5"/>';}
+ out+=beams;
+ out+='<ellipse cx="160" cy="128" rx="32" ry="14" fill="#e17055"/><circle cx="160" cy="120" r="15" fill="#fdcb6e"/><path d="M154,134 L160,142 L166,134Z" fill="#e1a400"/><path d="M146,114 Q160,100 174,114 Q160,108 146,114Z" fill="#4b2e1e"/>';
+ out+=camSVG(160,238,-90);
+ for(var k2 in L)out+=bulb(L[k2][0],L[k2][1],k2===which);
+ out+='<text x="186" y="243" font-size="12" fill="#636e72" font-weight="bold" font-family="Arial,sans-serif">cámara</text></svg>';
+ return out;
+}
+function polarPts(fn){var p=[];for(var i=0;i<=140;i++){var t=i/140*2*Math.PI,r=Math.abs(fn(t));p.push((100+70*r*Math.sin(t)).toFixed(1)+','+(100-70*r*Math.cos(t)).toFixed(1));}return p.join(' ');}
+function micSVG(kind){
+ var fn={omni:function(){return 1;},cardioid:function(t){return .5+.5*Math.cos(t);},bidi:function(t){return Math.cos(t);},super:function(t){return .37+.63*Math.cos(t);}}[kind];
+ return '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="#f8f9fa"/><circle cx="100" cy="100" r="70" fill="none" stroke="#dfe6e9" stroke-width="2"/><circle cx="100" cy="100" r="46" fill="none" stroke="#dfe6e9" stroke-width="2"/><circle cx="100" cy="100" r="23" fill="none" stroke="#dfe6e9" stroke-width="2"/><line x1="100" y1="22" x2="100" y2="178" stroke="#dfe6e9"/><line x1="22" y1="100" x2="178" y2="100" stroke="#dfe6e9"/><polygon points="'+polarPts(fn)+'" fill="rgba(255,118,117,.55)" stroke="#d63031" stroke-width="3"/><rect x="95" y="94" width="10" height="12" rx="5" fill="#2d3436"/><text x="100" y="14" text-anchor="middle" font-size="11" font-weight="bold" fill="#636e72">FRENTE ↑</text></svg>';
+}
+function planoSVG(kind){
+ var vb={general:'0 0 800 500',entero:'160 110 480 300',medio:'248 135 304 190',primer:'320 125 160 100',detalle:'402 205 120 75'}[kind];
+ var s='<svg viewBox="'+vb+'" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">';
+ s+='<rect width="800" height="400" fill="#a5d8ff"/><circle cx="725" cy="28" r="20" fill="#ffeaa7"/>';
+ s+='<rect x="60" y="70" width="680" height="330" fill="#ffeaa7"/><rect x="40" y="60" width="720" height="40" fill="#d63031"/>';
+ s+='<text x="400" y="89" text-anchor="middle" font-family="Trebuchet MS,Arial,sans-serif" font-size="24" font-weight="bold" fill="#fff">CAFÉ PARRAS</text>';
+ s+='<rect x="100" y="170" width="190" height="160" rx="8" fill="#74b9ff" stroke="#6d4c41" stroke-width="8"/><rect x="510" y="170" width="190" height="160" rx="8" fill="#74b9ff" stroke="#6d4c41" stroke-width="8"/>';
+ s+='<rect x="335" y="165" width="130" height="235" fill="#6d4c41"/>';
+ s+='<rect y="400" width="800" height="100" fill="#b2bec3"/>';
+ /* persona */
+ s+='<rect x="378" y="318" width="20" height="76" fill="#2d3436"/><rect x="402" y="318" width="20" height="76" fill="#2d3436"/><ellipse cx="386" cy="396" rx="16" ry="7" fill="#1e272e"/><ellipse cx="414" cy="396" rx="16" ry="7" fill="#1e272e"/>';
+ s+='<rect x="364" y="206" width="72" height="120" rx="14" fill="#ff9f43"/><rect x="378" y="240" width="44" height="86" rx="6" fill="#fff"/>';
+ s+='<line x1="368" y1="218" x2="352" y2="300" stroke="#ff9f43" stroke-width="16" stroke-linecap="round"/><circle cx="352" cy="304" r="9" fill="#fdcb6e"/>';
+ s+='<line x1="432" y1="218" x2="458" y2="268" stroke="#ff9f43" stroke-width="16" stroke-linecap="round"/>';
+ s+='<rect x="392" y="196" width="16" height="14" fill="#fdcb6e"/><circle cx="400" cy="172" r="30" fill="#fdcb6e"/>';
+ s+='<path d="M368,168 Q370,138 400,138 Q430,138 432,168 Q415,152 400,152 Q385,152 368,168Z" fill="#4b2e1e"/>';
+ s+='<circle cx="389" cy="173" r="3.5" fill="#2d3436"/><circle cx="411" cy="173" r="3.5" fill="#2d3436"/><path d="M390,186 Q400,196 410,186" stroke="#c0392b" stroke-width="3" fill="none" stroke-linecap="round"/>';
+ s+='<circle cx="462" cy="264" r="9" fill="#fdcb6e"/><rect x="446" y="236" width="32" height="26" rx="5" fill="#fff" stroke="#d63031" stroke-width="2"/><ellipse cx="462" cy="237" rx="14" ry="3.5" fill="#6f4e37"/><path d="M478,241 q13,4 0,14" stroke="#dfe6e9" stroke-width="4" fill="none"/>';
+ s+='<path d="M455,230 q-7,-10 0,-20" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/><path d="M463,230 q-7,-10 0,-20" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/><path d="M471,230 q-7,-10 0,-20" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>';
+ return s+'</svg>';
+}
+function vizHTML(key){
+ var p=key.split(':'),svg,rec='';
+ if(p[0]==='plano'){svg=planoSVG(p[1]);rec='<div class="rec"><i></i>REC</div>';}
+ else if(p[0]==='ang')svg=angSVG(p[1]);
+ else if(p[0]==='luz')svg=luzSVG(p[1]);
+ else if(p[0]==='mic')svg=micSVG(p[1]);
+ var ar=(p[0]==='plano')?'style="aspect-ratio:8/5"':'';
+ return '<div class="viz" '+ar+'>'+svg+rec+'</div>';
+}
+
+/* ================= ESTADO ================= */
+var S=null,FLAT=[],tick=null;
+function build(seed){
+ FLAT=[];
+ LEVELS.forEach(function(l,li){
+  var order=shuffle(l.qs,rngf(seed+li*101));
+  order.forEach(function(q){FLAT.push({li:li,q:q});});
+ });
+}
+function save(){if(S){S.t=Date.now();lsSet(S);}}
+function grade(){var s=0;for(var i=0;i<TOTAL;i++)s+=(S.res[i]||0);var raw=s/TOTAL*10;return Math.floor(raw*10+1e-9)/10;}
+function levelPct(li){var s=0,n=LEVELS[li].qs.length;for(var i=0;i<n;i++)s+=(S.res[LSTART[li]+i]||0);return Math.round(s/n*100);}
+function starsFor(p){return p>=90?3:p>=75?2:p>=50?1:0;}
+function starsHTML(n){var h='';for(var i=0;i<3;i++)h+='<span class="st'+(i<n?'':' off')+'">⭐</span>';return h;}
+
+function render(html,li){
+ var c=LEVELS[li==null?0:li].c;
+ document.documentElement.style.setProperty('--c1',c[0]);document.documentElement.style.setProperty('--c2',c[1]);
+ $('#app').innerHTML=html;
+ window.scrollTo(0,0);
+ var b=$('#bSnd');if(b)b.onclick=function(){SND.init();SND.setMuted(!SND.muted);b.textContent=SND.muted?'🔇':'🔊';if(!SND.muted)SND.click();};
+}
+function hud(li){
+ var pct=Math.round(S.gi/TOTAL*100);
+ return '<div class="hud"><div class="hrow"><span class="chip lv">Nivel '+(li+1)+'/'+LEVELS.length+'</span><span class="chip" id="hPts">⭐ '+S.pts+'</span><span class="chip" id="hStr">🔥 '+S.streak+'</span><span class="chip" id="hTime">⏱ '+fmt(S.ms)+'</span><button class="icon" id="bSnd" aria-label="Sonido">'+(SND.muted?'🔇':'🔊')+'</button></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>';
+}
+function startTick(){
+ if(tick)return;
+ tick=setInterval(function(){
+  if(!S||document.hidden)return;
+  S.ms+=1000;var e=$('#hTime');if(e)e.textContent='⏱ '+fmt(S.ms);
+ },1000);
+}
+function stopTick(){clearInterval(tick);tick=null;}
+
+/* ================= PANTALLAS ================= */
+function showStart(){
+ stopTick();SND.stopMusic();
+ var sv=lsGet(),resume='';
+ if(sv&&sv.name&&sv.seed&&typeof sv.gi==='number'&&sv.res){
+  resume='<button class="btn green" id="bRes">▶ Continuar como '+esc(sv.name)+' (pregunta '+(Math.min(sv.gi,TOTAL-1)+1)+' de '+TOTAL+')</button>';
+ }
+ render('<div class="card center"><div class="mascot">🎬</div><div class="title">Misión Producción Multimedia</div><div class="sub">Video y audio publicitario · Diseño Digital y Multimedia</div>'+
+ '<div style="margin-top:12px;font-weight:800">¿Cómo te llamas, productor(a)?</div><input type="text" id="nm" maxlength="40" placeholder="Escribe tu nombre completo" autocomplete="name">'+
+ '<div class="rules"><b>Reglas del juego</b><ul style="margin:6px 0 0;padding-left:18px"><li>10 niveles · '+TOTAL+' retos · unos 45 minutos.</li><li>Aprende la tarjeta de cada nivel y responde.</li><li>Necesitas <b>'+PASS+'.0 o más</b> para ganar tu <b>constancia en PDF</b>.</li><li>Si sacas menos, empiezas de nuevo hasta lograrlo. ¡Tú puedes!</li></ul></div>'+
+ '<button class="btn" id="bGo">🚀 ¡Jugar!</button>'+resume+'<div class="sub" style="font-size:13px;margin-top:12px">Activa el sonido de tu dispositivo 🔊</div></div>');
+ var inp=$('#nm');
+ function go(){
+  var n=inp.value.replace(/\s+/g,' ').trim();
+  if(n.length<3){inp.style.borderColor='#d63031';inp.focus();SND.init();SND.bad();return;}
+  SND.init();SND.click();newGame(n,1);
+ }
+ $('#bGo').onclick=go;
+ inp.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
+ var r=$('#bRes');
+ if(r)r.onclick=function(){
+  SND.init();SND.click();S=sv;S.attempt=S.attempt||1;S.pts=S.pts||0;S.streak=S.streak||0;S.ms=S.ms||0;build(S.seed);
+  if(S.gi>=TOTAL){showFinal();return;}
+  SND.setLevel(FLAT[S.gi].li);SND.startMusic();startTick();
+  if(S.phase==='intro')showIntro(FLAT[S.gi].li);
+  else showQ(S.gi);
+ };
+}
+function newGame(name,attempt){
+ var seed=Math.floor(Math.random()*1e9)+1;
+ S={name:name,seed:seed,gi:0,res:[],ms:0,pts:0,streak:0,phase:'intro',attempt:attempt};
+ build(seed);lsSet(S);showIntro(0);
+}
+function showIntro(li){
+ var L=LEVELS[li];S.phase='intro';S.gi=LSTART[li];save();
+ SND.setLevel(li);SND.init();SND.startMusic();startTick();
+ var pts=L.card.map(function(t){return '<li>'+t+'</li>';}).join('');
+ render(hud(li)+'<div class="card center"><div style="font-size:64px" class="mascot">'+L.e+'</div><h2>Nivel '+(li+1)+': '+L.t+'</h2><div class="sub">'+L.qs.length+' retos</div></div>'+
+ '<div class="card"><h3>📚 Antes de jugar, repasa:</h3><ul class="pts">'+pts+'</ul><button class="btn green" id="bStart">¡Empezar nivel! 🎮</button></div>',li);
+ $('#bStart').onclick=function(){SND.click();showQ(LSTART[li]);};
+}
+
+var OKM=['¡Excelente! 🎉','¡Eso es! 🙌','¡Crack del video! 🎬','¡Perfecto! ⭐','¡Muy bien! 💪','¡Directo al Óscar! 🏆'];
+var BADM=['¡Uy! Casi 😅','No pasa nada, aprende 📘','¡Esa no era! 🙈','Sigue intentando 💪'];
+
+function showQ(gi){
+ S.gi=gi;S.phase='q';save();
+ var it=FLAT[gi],q=it.q,li=it.li,n=LEVELS[li].qs.length,inl=gi-LSTART[li]+1;
+ var viz=q.viz?vizHTML(q.viz):'';
+ render(hud(li)+'<div class="card"><span class="qn">Reto '+inl+' de '+n+'</span><h2>'+q.q+'</h2>'+viz+'<div id="ans"></div><div id="fb"></div></div>',li);
+ var r=rngf(S.seed*7+gi*7919);
+ if(q.k==='c')qChoice(q,gi,r);
+ else if(q.k==='tf')qTF(q,gi);
+ else if(q.k==='order')qOrder(q,gi,r);
+ else if(q.k==='m')qMatch(q,gi,r);
+}
+function done(gi,earned,why){
+ S.res[gi]=earned;var cls,msg;
+ if(earned>=1){S.streak++;S.pts+=100+Math.min(S.streak,10)*10;SND.ok(S.streak);msg=pick(OKM);cls='good';burst(S.streak>=3?45:20);}
+ else if(earned>0){S.streak=0;S.pts+=Math.round(60*earned);SND.half();msg='¡Casi! Lo lograste en parte 👍';cls='mid';}
+ else{S.streak=0;SND.bad();msg=pick(BADM);cls='nope';}
+ var e=$('#hPts');if(e)e.textContent='⭐ '+S.pts;e=$('#hStr');if(e)e.textContent='🔥 '+S.streak;
+ var li=FLAT[gi].li,last=(gi===LSTART[li]+LEVELS[li].qs.length-1);
+ var fb=$('#fb');
+ fb.innerHTML='<div class="fbox '+cls+'"><b>'+msg+'</b><p>'+why+'</p><button class="btn '+(last?'purple':'blue')+'" id="bNext">'+(last?'Terminar nivel 🏁':'Siguiente ➜')+'</button></div>';
+ if(last){S.gi=gi+1;S.phase=(li===LEVELS.length-1)?'final':'intro';}else{S.gi=gi+1;S.phase='q';}
+ save();S.gi=gi;
+ $('#bNext').onclick=function(){
+  SND.click();
+  if(last)showLevelEnd(li);else showQ(gi+1);
+ };
+ setTimeout(function(){fb.scrollIntoView({behavior:'smooth',block:'center'});},60);
+}
+function qChoice(q,gi,r){
+ var opts=shuffle(q.o.map(function(t,i){return {t:t,ok:i===0};}),r),L='ABCD',h='';
+ opts.forEach(function(o,i){h+='<button class="opt o'+(i%4)+'" data-i="'+i+'"><span class="l">'+L[i]+'</span><span>'+o.t+'</span></button>';});
+ $('#ans').innerHTML=h;
+ var bs=document.querySelectorAll('#ans .opt');
+ bs.forEach(function(b){b.onclick=function(){
+  var o=opts[+b.dataset.i];
+  bs.forEach(function(x,i){x.disabled=true;if(opts[i].ok)x.classList.add('ok');});
+  if(!o.ok)b.classList.add('bad');
+  done(gi,o.ok?1:0,q.why);
+ };});
+}
+function qTF(q,gi){
+ $('#ans').innerHTML='<div class="tf"><button class="opt o2" data-v="1"><span>✅ Verdadero</span></button><button class="opt o0" data-v="0"><span>❌ Falso</span></button></div>';
+ var bs=document.querySelectorAll('#ans .opt');
+ bs.forEach(function(b){b.onclick=function(){
+  var v=b.dataset.v==='1',ok=(v===q.a);
+  bs.forEach(function(x){x.disabled=true;if((x.dataset.v==='1')===q.a)x.classList.add('ok');});
+  if(!ok)b.classList.add('bad');
+  done(gi,ok?1:0,q.why);
+ };});
+}
+function qOrder(q,gi,r){
+ var n=q.items.length,idx=q.items.map(function(_,i){return i;}),sh=shuffle(idx,r),tries=0;
+ while(sh.every(function(v,i){return v===i;})&&tries++<10)sh=shuffle(idx,r);
+ var k=0,errors=0,placed=[];
+ $('#ans').innerHTML='<div class="sub">Toca los elementos en el orden correcto:</div><ol class="slots" id="sl"></ol><div class="chips" id="ch"></div>';
+ function paint(){
+  var h='';for(var i=0;i<n;i++)h+=(i<placed.length)?'<li>'+(i+1)+'. '+esc(q.items[placed[i]])+'</li>':'<li class="empty">'+(i+1)+'.</li>';
+  $('#sl').innerHTML=h;
+ }
+ paint();
+ var ch=$('#ch');
+ sh.forEach(function(v){
+  var b=document.createElement('button');b.className='chip2';b.textContent=q.items[v];
+  b.onclick=function(){
+   if(v===k){b.disabled=true;placed.push(v);k++;SND.pop();paint();
+    if(k===n){var e=errors===0?1:(errors===1?0.5:0);done(gi,e,q.why);}
+   }else{errors++;SND.bad();b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');}
+  };
+  ch.appendChild(b);
+ });
+}
+function qMatch(q,gi,r){
+ var n=q.pairs.length,ridx=shuffle(q.pairs.map(function(_,i){return i;}),r),sel=-1,left=n,miss={},locked={};
+ var h='<div class="sub">Toca un elemento de la izquierda y luego su pareja de la derecha:</div><div class="match"><div id="mL"></div><div id="mR"></div></div>';
+ $('#ans').innerHTML=h;
+ var L=$('#mL'),R=$('#mR'),lb=[],rb=[];
+ q.pairs.forEach(function(p,i){
+  var b=document.createElement('button');b.className='mi';b.textContent=p[0];
+  b.onclick=function(){if(locked[i])return;SND.click();sel=i;lb.forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');};
+  L.appendChild(b);lb[i]=b;
+ });
+ ridx.forEach(function(pi){
+  var b=document.createElement('button');b.className='mi';b.textContent=q.pairs[pi][1];
+  b.onclick=function(){
+   if(locked[pi]||sel<0)return;
+   if(sel===pi){
+    locked[pi]=1;var c='p'+(pi%4);
+    lb[pi].classList.remove('sel');lb[pi].classList.add(c);lb[pi].disabled=true;b.classList.add(c);b.disabled=true;
+    SND.pop();sel=-1;left--;
+    if(left===0){var m=Object.keys(miss).length;done(gi,(n-m)/n,q.why);}
+   }else{
+    miss[sel]=1;SND.bad();
+    [lb[sel],b].forEach(function(x){x.classList.remove('shake');void x.offsetWidth;x.classList.add('shake');});
+    lb[sel].classList.remove('sel');sel=-1;
+   }
+  };
+  R.appendChild(b);rb.push(b);
+ });
+}
+
+function showLevelEnd(li){
+ var p=levelPct(li),st=starsFor(p),L=LEVELS[li];
+ S.gi=LSTART[li]+L.qs.length;S.phase=(li===LEVELS.length-1)?'final':'intro';save();
+ SND.level();burst(80,true);
+ var msg=st===3?'¡Nivel dominado! 🌟':st===2?'¡Muy buen nivel! 👏':st===1?'¡Nivel superado! Sigue así 💪':'Ese nivel estuvo difícil. ¡Ánimo! 🤗';
+ var last=(li===LEVELS.length-1);
+ render(hud(li)+'<div class="card center"><div class="mascot">'+L.e+'</div><h2>Nivel '+(li+1)+' completado</h2><div class="sub">'+L.t+'</div><div class="stars">'+starsHTML(st)+'</div><div style="font-size:30px;font-weight:900">'+p+' % de aciertos</div><div class="sub">'+msg+'</div><div class="sub">⭐ '+S.pts+' puntos · 🔥 racha '+S.streak+'</div>'+
+ '<button class="btn green" id="bN">'+(last?'🏁 ¡Ver mi calificación final!':'Siguiente nivel ➜')+'</button></div>',li);
+ $('#bN').onclick=function(){SND.click();if(last)showFinal();else showIntro(li+1);};
+}
+
+function showFinal(){
+ S.phase='final';S.gi=TOTAL;save();
+ var g=grade(),ok=g>=PASS,rows='',weak=[];
+ LEVELS.forEach(function(l,i){
+  var p=levelPct(i);if(p<75)weak.push((i+1)+'. '+l.t);
+  rows+='<div class="lvrow"><span class="nm">'+(i+1)+'. '+l.e+' '+l.t+'</span><span class="pb"><i style="width:'+p+'%;background:'+(p>=75?'#00b894':p>=50?'#e1a400':'#d63031')+'"></i></span><span>'+p+'%</span></div>';
+ });
+ var top;
+ if(ok){
+  SND.win();burst(220,true);setTimeout(function(){burst(160,true);},1500);
+  top='<div class="mascot">🏆</div><h2>¡Misión cumplida, '+esc(S.name)+'!</h2><div class="grade pass">'+g.toFixed(1)+'</div><div class="sub">Calificación final (mínimo '+PASS+'.0) · Tiempo: '+fmt(S.ms)+' · Intento '+S.attempt+'</div>'+
+  '<button class="btn green" id="bPdf">📄 Descargar mi constancia en PDF</button><a class="dl" id="lnk" style="display:none" target="_blank" rel="noopener">Si no se descargó, toca aquí para abrirla</a>';
+ }else{
+  SND.fail();
+  top='<div class="mascot">💪</div><h2>¡Casi lo logras, '+esc(S.name)+'!</h2><div class="grade fail">'+g.toFixed(1)+'</div><div class="sub">Necesitas <b>'+PASS+'.0 o más</b> para obtener tu constancia en PDF.</div>'+
+  (weak.length?'<div class="rules" style="margin-top:12px"><b>Repasa estos temas:</b><br>'+weak.join('<br>')+'</div>':'')+
+  '<button class="btn" id="bRetry">🔁 Intentarlo de nuevo</button>';
+ }
+ render('<div class="card center">'+top+'</div><div class="card"><h3>Tus niveles</h3>'+rows+'</div>',9);
+ var bp=$('#bPdf');if(bp)bp.onclick=function(){SND.click();makePDF();};
+ var br=$('#bRetry');if(br)br.onclick=function(){SND.click();newGame(S.name,S.attempt+1);};
+ stopTick();
+ if(ok)lsDel();
+}
+
+/* ================= PDF (generado a mano, sin librerías) ================= */
+var HW={' ':278,'!':278,'"':355,'#':556,'$':556,'%':889,'&':667,"'":191,'(':333,')':333,'*':389,'+':584,',':278,'-':333,'.':278,'/':278,':':278,';':278,'<':584,'=':584,'>':584,'?':556,'@':1015,'A':667,'B':667,'C':722,'D':722,'E':667,'F':611,'G':778,'H':722,'I':278,'J':500,'K':667,'L':556,'M':833,'N':722,'O':778,'P':667,'Q':778,'R':722,'S':667,'T':611,'U':722,'V':667,'W':944,'X':667,'Y':667,'Z':611,'[':278,'\\':278,']':278,'^':469,'_':556,'a':556,'b':556,'c':500,'d':556,'e':556,'f':278,'g':556,'h':556,'i':222,'j':222,'k':500,'l':222,'m':833,'n':556,'o':556,'p':556,'q':556,'r':333,'s':500,'t':278,'u':556,'v':500,'w':722,'x':500,'y':500,'z':500};
+var HB={' ':278,'!':333,'"':474,'%':889,'&':722,"'":238,'(':333,')':333,'*':389,'+':584,',':278,'-':333,'.':278,'/':278,':':333,';':333,'?':611,'@':975,'A':722,'B':722,'C':722,'D':722,'E':667,'F':611,'G':778,'H':722,'I':278,'J':556,'K':722,'L':611,'M':833,'N':722,'O':778,'P':667,'Q':778,'R':722,'S':667,'T':611,'U':722,'V':667,'W':944,'X':667,'Y':667,'Z':611,'a':556,'b':611,'c':556,'d':611,'e':556,'f':333,'g':611,'h':611,'i':278,'j':278,'k':556,'l':278,'m':889,'n':611,'o':611,'p':611,'q':611,'r':389,'s':556,'t':333,'u':611,'v':556,'w':778,'x':556,'y':556,'z':500};
+function lat(s){var o='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);o+=(c>255?'?':s.charAt(i));}return o;}
+function pesc(s){return lat(s).replace(/[\\()]/g,'\\$&');}
+function base(ch){var d=ch.normalize?ch.normalize('NFD').charAt(0):ch;return d||ch;}
+function tw(s,size,bold){var W=bold?HB:HW,w=0;for(var i=0;i<s.length;i++){var ch=base(s.charAt(i));w+=(W[ch]!=null?W[ch]:(ch>='0'&&ch<='9'?556:(/[¿¡]/.test(ch)?556:600)));}return w*size/1000;}
+function rgb(h){return (parseInt(h.substr(1,2),16)/255).toFixed(3)+' '+(parseInt(h.substr(3,2),16)/255).toFixed(3)+' '+(parseInt(h.substr(5,2),16)/255).toFixed(3);}
+function makePDF(){
+ if(grade()<PASS)return;
+ var W=792,H=612,c='';
+ function rect(x,y,w,h,fill,stroke,lw){c+='q '+(fill?rgb(fill)+' rg ':'')+(stroke?rgb(stroke)+' RG '+lw+' w ':'')+x+' '+y+' '+w+' '+h+' re '+(fill&&stroke?'B':fill?'f':'S')+' Q\n';}
+ function text(s,x,y,size,color,bold,center){var w=tw(s,size,bold);if(center)x=x-w/2;c+='BT '+rgb(color)+' rg /'+(bold?'F2':'F1')+' '+size+' Tf '+x.toFixed(1)+' '+y+' Td ('+pesc(s)+') Tj ET\n';}
+ function circle(x,y,r,fill){var k=.5523*r;c+='q '+rgb(fill)+' rg '+(x+r)+' '+y+' m '+(x+r)+' '+(y+k)+' '+(x+k)+' '+(y+r)+' '+x+' '+(y+r)+' c '+(x-k)+' '+(y+r)+' '+(x-r)+' '+(y+k)+' '+(x-r)+' '+y+' c '+(x-r)+' '+(y-k)+' '+(x-k)+' '+(y-r)+' '+x+' '+(y-r)+' c '+(x+k)+' '+(y-r)+' '+(x+r)+' '+(y-k)+' '+(x+r)+' '+y+' c f Q\n';}
+ function star(x,y,R,fill){var pts=[];for(var i=0;i<10;i++){var r=(i%2===0)?R:R*0.42,a=Math.PI/2+i*Math.PI/5;pts.push((x+r*Math.cos(a)).toFixed(2)+' '+(y+r*Math.sin(a)).toFixed(2));}c+='q '+rgb(fill)+' rg '+pts[0]+' m '+pts.slice(1).map(function(p){return p+' l';}).join(' ')+' h f Q\n';}
+ var g=grade(),name=S.name;
+ rect(0,0,W,H,'#fffbea');
+ rect(16,16,W-32,H-32,null,'#ff6b6b',8);
+ rect(30,30,W-60,H-60,null,'#54a0ff',3);
+ [[44,44,'#feca57'],[W-44,44,'#2ed573'],[44,H-44,'#a55eea'],[W-44,H-44,'#ff7675']].forEach(function(p){circle(p[0],p[1],9,p[2]);});
+ text('CONSTANCIA DE LOGRO',W/2,520,36,'#5f27cd',true,true);
+ text('Misión Producción Multimedia · Video y audio publicitario',W/2,492,15,'#636e72',false,true);
+ text('Se otorga a:',W/2,455,15,'#2d3436',false,true);
+ var size=38;while(tw(name,size,true)>W-150&&size>14)size-=2;
+ text(name,W/2,415,size,'#e84118',true,true);
+ var nw=Math.min(tw(name,size,true)+30,W-120);c+='q '+rgb('#e84118')+' RG 1.5 w '+(W/2-nw/2)+' 405 m '+(W/2+nw/2)+' 405 l S Q\n';
+ text('por completar los 10 niveles del juego con una calificación de',W/2,378,15,'#2d3436',false,true);
+ text(g.toFixed(1)+' / 10',W/2,322,56,'#10ac84',true,true);
+ var colors=LEVELS.map(function(l){return l.c[0];});colors[9]='#e58e26';colors[6]='#e67e22';
+ var bw=62,gap=5,total=10*bw+9*gap,x0=(W-total)/2,by=222;
+ LEVELS.forEach(function(l,i){
+  var x=x0+i*(bw+gap),p=levelPct(i),st=starsFor(p);
+  rect(x,by,bw,66,colors[i],null,0);
+  text('Nivel '+(i+1),x+bw/2,by+52,10,'#ffffff',true,true);
+  text(p+' %',x+bw/2,by+33,15,'#ffffff',true,true);
+  for(var s=0;s<3;s++)star(x+bw/2+(s-1)*15,by+13,6,s<st?'#ffe600':'#8395a7');
+ });
+ var d=new Date(),dd=('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+ text('Tiempo de juego: '+fmt(S.ms)+'   ·   Intento n.º '+S.attempt+'   ·   Fecha: '+dd,W/2,196,12,'#2d3436',false,true);
+ var hsh=2166136261,str=name+'|'+g+'|'+dd+'|'+S.seed+'|'+S.ms;
+ for(var i=0;i<str.length;i++){hsh^=str.charCodeAt(i);hsh=Math.imul(hsh,16777619);}
+ var folio=(hsh>>>0).toString(36).toUpperCase().padStart(7,'0');
+ text('Folio: MP-'+folio,W/2,172,12,'#5f27cd',true,true);
+ text('Universidad Tecnológica de Parras · Diseño Digital y Multimedia · TSU en Mercadotecnia',W/2,100,12,'#636e72',false,true);
+ text('Unidad 3 · Tema 3: Producción multimedia · Software y técnicas de video y audio',W/2,82,11,'#636e72',false,true);
+ var o=[];
+ o.push('<< /Type /Catalog /Pages 2 0 R >>');
+ o.push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+ o.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+W+' '+H+'] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>');
+ o.push('<< /Length '+c.length+' >>\nstream\n'+c+'endstream');
+ o.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+ o.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+ var out='%PDF-1.4\n',offs=[];
+ o.forEach(function(b,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+b+'\nendobj\n';});
+ var xr=out.length;
+ out+='xref\n0 '+(o.length+1)+'\n0000000000 65535 f \n'+offs.map(function(v){return ('0000000000'+v).slice(-10)+' 00000 n \n';}).join('')+'trailer\n<< /Size '+(o.length+1)+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF';
+ var bytes=new Uint8Array(out.length);for(var j=0;j<out.length;j++)bytes[j]=out.charCodeAt(j)&255;
+ var blob=new Blob([bytes],{type:'application/pdf'}),url=URL.createObjectURL(blob);
+ var fn='Constancia_'+name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_')+'.pdf';
+ var a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();document.body.removeChild(a);
+ var l=$('#lnk');if(l){l.href=url;l.style.display='block';}
+ window.__lastPDF={bytes:bytes,name:fn};
+}
+window.__MP={makePDF:makePDF,newGame:newGame,getS:function(){return S;},FLAT:function(){return FLAT;},LEVELS:LEVELS,showFinal:showFinal,showQ:showQ,showIntro:showIntro,showLevelEnd:showLevelEnd};
+
+showStart();
+})();
+</script>
+</body>
+</html>
